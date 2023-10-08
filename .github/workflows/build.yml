@@ -71,8 +71,13 @@ jobs:
           echo 'Build for Windows ARM 64-bit'
           GOOS=windows GOARCH=arm64 go build -o Cloudflare_trace-windows-arm64.exe ./Cloudflare_trace.go
 
-          mkdir bin
-          mv Cloudflare_trace-* bin/
+          mkdir compress
+          mv Cloudflare_trace-* compress/
+
+          # walkaround: win64/arm64 and mips64 is not yet supported by UPX
+          mkdir raw
+          mv compress/Cloudflare_trace-windows-arm64* raw/
+          mv compress/Cloudflare_trace-linux-mips64* raw/
 
       - name: Compress
         run: |
@@ -85,7 +90,7 @@ jobs:
           ls -la .
 
           echo 'Compress the executable files using UPX'
-          upx --best --lzma bin/*
+          upx --best --lzma compress/*
 
           echo 'End Of Compress.'
 
@@ -94,7 +99,9 @@ jobs:
         if: steps.compile.conclusion == 'success'
         with:
           name: bin
-          path: bin/
+          path: |
+            compress/
+            raw/
 
       - name: Create release
         id: create_release
