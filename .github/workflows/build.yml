@@ -21,57 +21,80 @@ jobs:
       - name: Setup Go environment
         uses: actions/setup-go@v4
 
-      - name: Build and Compress
+      - name: Build
+        id: compile
         run: |
-          go get -v -t -d ./...
+          # go get -v -t -d ./...
 
-          # Build for MacOS 64-bit
+          echo 'Build for MacOS 64-bit'
           GOOS=darwin GOARCH=amd64 go build -o Cloudflare_trace-darwin-amd64 ./Cloudflare_trace.go
 
-          # Build for MacOS ARM 64-bit
+          echo 'Build for MacOS ARM 64-bit'
           GOOS=darwin GOARCH=arm64 go build -o Cloudflare_trace-darwin-arm64 ./Cloudflare_trace.go
 
-          # Build for Linux 32-bit
+          echo 'Build for Linux 32-bit'
           GOOS=linux GOARCH=386 go build -o Cloudflare_trace-linux-386 ./Cloudflare_trace.go
 
-          # Build for Linux 64-bit
+          echo 'Build for Linux 64-bit'
           GOOS=linux GOARCH=amd64 go build -o Cloudflare_trace-linux-amd64 ./Cloudflare_trace.go
 
-          # Build for Linux ARM 64-bit
+          echo 'Build for Linux ARM 64-bit'
           GOOS=linux GOARCH=arm64 go build -o Cloudflare_trace-linux-arm64 ./Cloudflare_trace.go
 
-          # Build for Linux ARM 32-bit (v5)
+          echo 'Build for Linux ARM 32-bit (v5)'
           GOOS=linux GOARCH=arm GOARM=5 go build -o Cloudflare_trace-linux-arm5 ./Cloudflare_trace.go
 
-          # Build for Linux ARM 32-bit (v6)
+          echo 'Build for Linux ARM 32-bit (v6)'
           GOOS=linux GOARCH=arm GOARM=6 go build -o Cloudflare_trace-linux-arm6 ./Cloudflare_trace.go
 
-          # Build for Linux ARM 32-bit (v7)
+          echo 'Build for Linux ARM 32-bit (v7)'
           GOOS=linux GOARCH=arm GOARM=7 go build -o Cloudflare_trace-linux-arm7 ./Cloudflare_trace.go
 
-          # Build for Linux MIPS 32-bit
+          echo 'Build for Linux MIPS 32-bit'
           GOOS=linux GOARCH=mips go build -o Cloudflare_trace-linux-mips ./Cloudflare_trace.go
 
-          # Build for Linux MIPS 64-bit
+          echo 'Build for Linux MIPS 64-bit'
           GOOS=linux GOARCH=mips64 go build -o Cloudflare_trace-linux-mips64 ./Cloudflare_trace.go
 
-          # Build for Linux MIPS LE 32-bit
+          echo 'Build for Linux MIPS LE 32-bit'
           GOOS=linux GOARCH=mipsle go build -o Cloudflare_trace-linux-mipsle ./Cloudflare_trace.go
 
-          # Build for Linux MIPS LE 64-bit
+          echo 'Build for Linux MIPS LE 64-bit'
           GOOS=linux GOARCH=mips64le go build -o Cloudflare_trace-linux-mips64le ./Cloudflare_trace.go
 
-          # Build for Windows 32-bit
+          echo 'Build for Windows 32-bit'
           GOOS=windows GOARCH=386 go build -o Cloudflare_trace-windows-386.exe ./Cloudflare_trace.go
 
-          # Build for Windows 64-bit
+          echo 'Build for Windows 64-bit'
           GOOS=windows GOARCH=amd64 go build -o Cloudflare_trace-windows-amd64.exe ./Cloudflare_trace.go
 
-          # Build for Windows ARM 64-bit
+          echo 'Build for Windows ARM 64-bit'
           GOOS=windows GOARCH=arm64 go build -o Cloudflare_trace-windows-arm64.exe ./Cloudflare_trace.go
 
-          # Compress the executable files using UPX
-          upx --best --lzma Cloudflare_trace-*
+          mkdir bin
+          mv Cloudflare_trace-* bin/
+
+      - name: Compress
+        run: |
+          echo 'Loading upx 4.1.0'
+          wget https://github.com/upx/upx/releases/download/v4.1.0/upx-4.1.0-amd64_linux.tar.xz
+          tar -xvf upx-4.1.0-amd64_linux.tar.xz
+          sudo chmod a+x upx-4.1.0-amd64_linux/upx
+          sudo cp -fv upx-4.1.0-amd64_linux/upx /usr/bin/upx
+
+          ls -la .
+
+          echo 'Compress the executable files using UPX'
+          upx --best --lzma bin/*
+
+          echo 'End Of Compress.'
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@main
+        if: steps.compile.conclusion == 'success'
+        with:
+          name: bin
+          path: bin/
 
       - name: Create release
         id: create_release
