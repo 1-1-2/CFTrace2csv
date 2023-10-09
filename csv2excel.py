@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def write2xlsx(df, filename='cf_trace.xlsx'):
     with pd.ExcelWriter(filename, engine='openpyxl') as writer:
         df.to_excel(writer, sheet_name='cf_trace')
@@ -24,13 +25,20 @@ def write2xlsx(df, filename='cf_trace.xlsx'):
                     adjusted_width = min(max_length + 2, max_width)
                 sheets.column_dimensions[column_letter].width = adjusted_width
 
+
 def line2dict(line):
     data = {}
     for field in line.split(','):
         if '=' in field:
-            key, value = field.split('=')
-            data[key] = value
+            try:
+                key, value = field.split('=')
+                data[key] = value
+            except Exception as e:
+                print(e, line[:100] + "..." if len(line) > 100 else line)
+                return {'CDN_IP': data['CDN_IP']}
+
     return data
+
 
 if __name__ == '__main__':
     with open('cf_trace.csv', 'r') as f:
