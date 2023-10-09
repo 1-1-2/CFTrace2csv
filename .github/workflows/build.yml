@@ -27,50 +27,52 @@ jobs:
           # go get -v -t -d ./...
 
           echo 'Build for MacOS 64-bit'
-          GOOS=darwin GOARCH=amd64 go build -o Cloudflare_trace-darwin-amd64 ./Cloudflare_trace.go
+          GOOS=darwin GOARCH=amd64 go build -o Cloudflare_trace-darwin-amd64 ./Cloudflare_trace.go &
 
           echo 'Build for MacOS ARM 64-bit'
-          GOOS=darwin GOARCH=arm64 go build -o Cloudflare_trace-darwin-arm64 ./Cloudflare_trace.go
+          GOOS=darwin GOARCH=arm64 go build -o Cloudflare_trace-darwin-arm64 ./Cloudflare_trace.go &
 
           echo 'Build for Linux 32-bit'
-          GOOS=linux GOARCH=386 go build -o Cloudflare_trace-linux-386 ./Cloudflare_trace.go
+          GOOS=linux GOARCH=386 go build -o Cloudflare_trace-linux-386 ./Cloudflare_trace.go &
 
           echo 'Build for Linux 64-bit'
-          GOOS=linux GOARCH=amd64 go build -o Cloudflare_trace-linux-amd64 ./Cloudflare_trace.go
+          GOOS=linux GOARCH=amd64 go build -o Cloudflare_trace-linux-amd64 ./Cloudflare_trace.go &
 
           echo 'Build for Linux ARM 64-bit'
-          GOOS=linux GOARCH=arm64 go build -o Cloudflare_trace-linux-arm64 ./Cloudflare_trace.go
+          GOOS=linux GOARCH=arm64 go build -o Cloudflare_trace-linux-arm64 ./Cloudflare_trace.go &
 
           echo 'Build for Linux ARM 32-bit (v5)'
-          GOOS=linux GOARCH=arm GOARM=5 go build -o Cloudflare_trace-linux-arm5 ./Cloudflare_trace.go
+          GOOS=linux GOARCH=arm GOARM=5 go build -o Cloudflare_trace-linux-arm5 ./Cloudflare_trace.go &
 
           echo 'Build for Linux ARM 32-bit (v6)'
-          GOOS=linux GOARCH=arm GOARM=6 go build -o Cloudflare_trace-linux-arm6 ./Cloudflare_trace.go
+          GOOS=linux GOARCH=arm GOARM=6 go build -o Cloudflare_trace-linux-arm6 ./Cloudflare_trace.go &
 
           echo 'Build for Linux ARM 32-bit (v7)'
-          GOOS=linux GOARCH=arm GOARM=7 go build -o Cloudflare_trace-linux-arm7 ./Cloudflare_trace.go
+          GOOS=linux GOARCH=arm GOARM=7 go build -o Cloudflare_trace-linux-arm7 ./Cloudflare_trace.go &
 
           echo 'Build for Linux MIPS 32-bit'
-          GOOS=linux GOARCH=mips go build -o Cloudflare_trace-linux-mips ./Cloudflare_trace.go
+          GOOS=linux GOARCH=mips go build -o Cloudflare_trace-linux-mips ./Cloudflare_trace.go &
 
           echo 'Build for Linux MIPS 64-bit'
-          GOOS=linux GOARCH=mips64 go build -o Cloudflare_trace-linux-mips64 ./Cloudflare_trace.go
+          GOOS=linux GOARCH=mips64 go build -o Cloudflare_trace-linux-mips64 ./Cloudflare_trace.go &
 
           echo 'Build for Linux MIPS LE 32-bit'
-          GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -o Cloudflare_trace-linux-mipsle ./Cloudflare_trace.go
+          GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -o Cloudflare_trace-linux-mipsle ./Cloudflare_trace.go &
 
           echo 'Build for Linux MIPS LE 64-bit'
-          GOOS=linux GOARCH=mips64le go build -o Cloudflare_trace-linux-mips64le ./Cloudflare_trace.go
+          GOOS=linux GOARCH=mips64le go build -o Cloudflare_trace-linux-mips64le ./Cloudflare_trace.go &
 
           echo 'Build for Windows 32-bit'
-          GOOS=windows GOARCH=386 go build -o Cloudflare_trace-windows-386.exe ./Cloudflare_trace.go
+          GOOS=windows GOARCH=386 go build -o Cloudflare_trace-windows-386.exe ./Cloudflare_trace.go &
 
           echo 'Build for Windows 64-bit'
-          GOOS=windows GOARCH=amd64 go build -o Cloudflare_trace-windows-amd64.exe ./Cloudflare_trace.go
+          GOOS=windows GOARCH=amd64 go build -o Cloudflare_trace-windows-amd64.exe ./Cloudflare_trace.go &
 
           echo 'Build for Windows ARM 64-bit'
-          GOOS=windows GOARCH=arm64 go build -o Cloudflare_trace-windows-arm64.exe ./Cloudflare_trace.go
+          GOOS=windows GOARCH=arm64 go build -o Cloudflare_trace-windows-arm64.exe ./Cloudflare_trace.go &
 
+          wait
+          
           mkdir compress
           mv Cloudflare_trace-* compress/
 
