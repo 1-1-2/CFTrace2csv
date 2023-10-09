@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@main
 
       - name: Setup Go environment
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@main
 
       - name: Build
         id: compile
@@ -57,7 +57,7 @@ jobs:
           GOOS=linux GOARCH=mips64 go build -o Cloudflare_trace-linux-mips64 ./Cloudflare_trace.go
 
           echo 'Build for Linux MIPS LE 32-bit'
-          GOOS=linux GOARCH=mipsle go build -o Cloudflare_trace-linux-mipsle ./Cloudflare_trace.go
+          GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -o Cloudflare_trace-linux-mipsle ./Cloudflare_trace.go
 
           echo 'Build for Linux MIPS LE 64-bit'
           GOOS=linux GOARCH=mips64le go build -o Cloudflare_trace-linux-mips64le ./Cloudflare_trace.go
@@ -106,7 +106,7 @@ jobs:
       - name: Create release
         id: create_release
         if: inputs.release
-        uses: actions/create-release@v1
+        uses: actions/create-release@main
         with:
           files: |
             Cloudflare_trace-darwin-amd64
