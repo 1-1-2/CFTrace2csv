@@ -92,17 +92,25 @@ func processIPAddressesFromFile(ipFile *os.File, ipChannel chan string) {
     }
 }
 
+var csvMutex sync.Mutex // 声明互斥锁
 // 处理IP地址
 func processIPAddresses(ipChannel chan string, csvWriter *csv.Writer, threadID string) {
     for ip := range ipChannel {
         traceResponse, status := getTraceResponse(ip, threadID)
 
         if status == "200" {
-            traceColumns := strings.Split(traceResponse, "\n") // 将多行文本分割成字串切片
+            traceResponse := strings.Trim(traceResponse, "\n")  // 删除前后多余的换行符
+            traceColumns := strings.Split(traceResponse, "\n")  // 将多行文本分割成字串切片
             traceColumns = append([]string{"CDN_IP=" + ip}, traceColumns...) // 在开头插入元素
-            csvWriter.Write(traceColumns)                        // 写入CSV
+
+            // 使用互斥锁保护写入操作
+            csvMutex.Lock()
+            csvWriter.Write(traceColumns) // 写入CSV
+            csvMutex.Unlock()
         } else {
+            csvMutex.Lock()
             csvWriter.Write([]string{"CDN_IP=" + ip, "status=failed"})
+            csvMutex.Unlock()
         }
     }
 }
