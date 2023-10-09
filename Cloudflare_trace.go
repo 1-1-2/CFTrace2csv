@@ -92,48 +92,57 @@ func processIPAddressesFromFile(ipFile *os.File, ipChannel chan string) {
     }
 }
 
-
 // 处理IP地址
 func processIPAddresses(ipChannel chan string, csvWriter *csv.Writer, threadID string) {
     for ip := range ipChannel {
-        fmt.Printf("%s 正在处理 IP: %s\n", threadID, ip)
-
-        var traceResponse string
-        var status string
-        for i := 0; i < 3; i++ {
-            traceResponse, status = getTraceResponse(ip)
-            if status == "200" {
-                break
-            }
-            time.Sleep(time.Second)
-        }
+        traceResponse, status := getTraceResponse(ip, threadID)
 
         if status == "200" {
             traceColumns := strings.Split(traceResponse, "\n") // 将多行文本分割成字串切片
             traceColumns = append([]string{"CDN_IP=" + ip}, traceColumns...) // 在开头插入元素
             csvWriter.Write(traceColumns)                        // 写入CSV
         } else {
-            csvWriter.Write([]string{"CDN_IP=" + ip, "status:failed"})
+            csvWriter.Write([]string{"CDN_IP=" + ip, "status=failed"})
         }
     }
 }
 
 // 获取跟踪响应
-func getTraceResponse(ip string) (string, string) {
-    url := "http://" + ip + "/cdn-cgi/trace"
-    resp, err := http.Get(url)
-    if err != nil {
-        return "", err.Error()
-    }
-    defer resp.Body.Close()
+func getTraceResponse(ip, threadID string) (string, string) {
+    maxRetries := 3
+    // retryDelay := 1 * time.Second
 
-    if resp.StatusCode == http.StatusOK {
-        body, err := ioutil.ReadAll(resp.Body)
-        if err != nil {
-            return "", err.Error()
+    // 如果IP地址是IPv6地址并且没有方括号，则添加方括号
+    if strings.Contains(ip, ":") && !strings.Contains(ip, "[") {
+        ip = "[" + ip + "]"
+    }
+
+    for retry := 0; retry <= maxRetries; retry++ {
+        if retry > 0 {
+            fmt.Printf("%s 重试(%d/%d) : %s \n", threadID, retry, maxRetries, ip)
+        } else {
+            fmt.Printf("%s 尝试访问 : %s\n", threadID, ip)
         }
-        return string(body), "200"
+
+        // 添加最多 4 秒的超时
+        client := &http.Client{Timeout: 4 * time.Second}
+        url := "http://" + ip + "/cdn-cgi/trace"
+        resp, err := client.Get(url)
+        if err != nil {
+            fmt.Printf("%s 请求失败: %s | %v\n", threadID, ip, err)
+        } else {
+            defer resp.Body.Close()
+            if resp.StatusCode == http.StatusOK {
+                body, err := ioutil.ReadAll(resp.Body)
+                if err != nil {
+                    fmt.Printf("%s 读取响应失败: %s | %v\n", threadID, ip, err)
+                }
+                return string(body), "200"
+            } else {
+                fmt.Printf("%s 异常响应%d: %s\n", threadID, resp.StatusCode, ip)
+            }
+        }
     }
 
-    return "", fmt.Sprintf("status:%d", resp.StatusCode)
+    return "", "status=failed"
 }
