@@ -21,4 +21,5 @@
 go.work
 
 # Custom
-*.csv
+cf_trace.csv
+*.xlsx
