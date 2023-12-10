@@ -1,5 +1,5 @@
 import pandas as pd
-
+from glob import glob
 
 def write2xlsx(df, filename='cf_trace.xlsx'):
     with pd.ExcelWriter(filename, engine='openpyxl') as writer:
@@ -40,8 +40,8 @@ def line2dict(line):
     return data
 
 
-if __name__ == '__main__':
-    with open('cf_trace.csv', 'r') as f:
+def csv2df(filename='cf_trace.csv'):
+    with open(filename, 'r') as f:
         table = f.readlines()
 
     table_parsed = list()
@@ -50,16 +50,35 @@ if __name__ == '__main__':
 
     df = pd.DataFrame(table_parsed)
 
-    # 有的节点会记录本地 ip，应为 ip 列的众数
+    # 有的节点会记录本地IP，此时本地IP为 IP 列的众数
     loc_ip = df.ip.mode()[0]
-    # 将 table_parsed.ip 与本地 ip 相同的用空字符串填充
+    # 将 table_parsed.ip 与本地IP 相同的用空字符串填充
     df.ip[df.ip == loc_ip] = None
+    # 将 df.colo 根据 df_colo 的映射，存放到 df.ts 列
+    df['ts'] = df.colo.map(df_colo.set_index('三字码')['CH'])
+    
+    return df
 
+def gen_compare():
+    filelist = glob('*.xlsx')
+    dfs = [pd.read_excel(file, index_col=0).set_index('CDN_IP')
+           for file in filelist]
+
+    result = pd.DataFrame([df.ts.dropna().to_dict()
+                           for df in dfs], index=filelist).T
+    result.to_excel('compare.xlsx')
+
+if __name__ == '__main__':
     # colo2location
     df_colo = pd.read_csv('ColoList.csv', encoding='GBK')
     # 将 '国家CH' 和 '地区CH' 拼合到 'CH' 列
     df_colo['CH'] = df_colo['国家CH'] + ',' + df_colo['地区CH']
-    # 将 df.colo 根据 df_colo 的映射，存放到 df.ts 列
-    df['ts'] = df.colo.map(df_colo.set_index('三字码')['CH'])
 
+    # df = csv2df()
     # write2xlsx(df)
+
+    for result_csv in glob('cf_trace*.csv'):
+        df = csv2df(result_csv)
+        write2xlsx(df, result_csv[:-4]+'.xlsx')
+
+    gen_compare()
